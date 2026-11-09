@@ -1,0 +1,56 @@
+<view class="panel">
+  <view class="panel-title"><text class="no">壹</text>AI 路线规划</view>
+
+  <view class="field">
+    <text class="label">出发点</text>
+    <picker range="{{attractions}}" range-key="name" bindchange="pickStart">
+      <view class="picker-val">{{startName}} ▾</view>
+    </picker>
+  </view>
+
+  <view class="field">
+    <text class="label">想去的景点（点选，可多选）</text>
+    <view class="chips">
+      <text
+        wx:for="{{attractions}}" wx:key="id"
+        class="chip {{poiOn[item.id] ? 'on' : ''}}"
+        data-id="{{item.id}}" bindtap="togglePoi"
+      >{{item.name}}</text>
+    </view>
+  </view>
+
+  <view class="field">
+    <text class="label">出发时间</text>
+    <picker mode="time" value="{{time}}" bindchange="onTimeChange">
+      <view class="picker-val">{{time}} ▾</view>
+    </picker>
+  </view>
+</view>
+
+<view class="btn-primary" bindtap="plan">{{planning ? 'AI 推演中…' : '生成行程方案'}}</view>
+
+<view class="panel" wx:if="{{plan}}">
+  <view class="panel-title"><text class="no">贰</text>行程方案</view>
+  <view class="trip-head">
+    <text>出发：{{plan.start_name}} · {{plan.depart}}</text>
+    <text class="muted">车上合计 {{plan.total_ride_minutes}} 分钟</text>
+  </view>
+
+  <view wx:for="{{plan.segments}}" wx:key="to" class="stop">
+    <view class="stop-seq">{{item.seq}}</view>
+    <view class="stop-body">
+      <view class="stop-name">{{item.to_name}}</view>
+      <view class="muted">⏱ {{item.arrive}} 到 → {{item.leave}} 离开（游览 {{item.stay_min}} 分钟）</view>
+      <view class="ride" wx:if="{{item.lastMode}}">
+        🚗 {{item.lastMode}} · {{item.lastKm}}km · 约 {{item.lastMinutes}} 分钟 ·
+        <text class="{{item.lvClass}}">{{item.lv}}</text>
+        <view class="muted">{{item.lastRoad}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="advice" wx:if="{{plan.advice.length}}">
+    <text class="advice-title">错峰建议</text>
+    <view wx:for="{{plan.advice}}" wx:key="*this">{{item}}</view>
+  </view>
+</view>

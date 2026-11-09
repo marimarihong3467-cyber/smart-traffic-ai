@@ -1,0 +1,38 @@
+<view class="panel">
+  <view class="panel-title"><text class="no">壹</text>全城路况推演</view>
+
+  <view class="time-row">
+    <text class="time-big">{{hourLabel}}</text>
+    <text class="muted">{{dayTip}}</text>
+  </view>
+
+  <slider
+    min="6" max="23" value="{{hour}}" step="1"
+    activeColor="#c8452e" backgroundColor="#d8cbb2" block-size="22"
+    bindchange="onHourChange" bindchanging="onHourChange"
+  />
+  <view class="ticks muted">
+    <text>06</text><text>09</text><text>12</text><text>15</text><text>18</text><text>21</text><text>23</text>
+  </view>
+
+  <view class="weather-row">
+    <text class="w-btn {{weather === 'sunny' ? 'on' : ''}}" data-w="sunny" bindtap="pickWeather">☀ 晴</text>
+    <text class="w-btn {{weather === 'rain' ? 'on' : ''}}" data-w="rain" bindtap="pickWeather">☂ 雨</text>
+    <text class="w-btn {{weather === 'fog' ? 'on' : ''}}" data-w="fog" bindtap="pickWeather">≋ 雾</text>
+  </view>
+</view>
+
+<view class="panel">
+  <view class="panel-title"><text class="no">贰</text>路段状态（最堵优先）</view>
+  <view wx:if="{{loading}}" class="muted">推演中…</view>
+  <view wx:for="{{corridors}}" wx:key="id" class="corridor">
+    <view class="corridor-name">{{item.name}}</view>
+    <view class="corridor-bar">
+      <view class="bar-fill {{item.lvClass}}" style="width: {{item.ratio * 30}}%"></view>
+    </view>
+    <view class="corridor-meta">
+      <text class="{{item.lvClass}}">{{item.level}}</text>
+      <text class="muted">约 {{item.minutes}} 分钟 · {{item.km}}km</text>
+    </view>
+  </view>
+</view>

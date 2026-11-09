@@ -1,0 +1,22 @@
+<view class="chat-wrap">
+  <view wx:for="{{messages}}" wx:key="index" class="msg {{item.role}}">
+    <view class="bubble {{item.role}} {{item.loading ? 'loading' : ''}}">{{item.text}}</view>
+    <view class="tag" wx:if="{{item.tag}}">{{item.tag}}</view>
+  </view>
+</view>
+
+<view class="quick-row">
+  <text
+    wx:for="{{quickAsks}}" wx:key="*this"
+    class="quick" data-q="{{item}}" bindtap="quickAsk"
+  >{{item}}</text>
+</view>
+
+<view class="input-bar">
+  <input
+    class="chat-input" value="{{input}}"
+    placeholder="问点什么…（回车发送）"
+    confirm-type="send" bindinput="onInput" bindconfirm="onSend"
+  />
+  <view class="send-btn" bindtap="onSend">问</view>
+</view>

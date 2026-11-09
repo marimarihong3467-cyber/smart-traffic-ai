@@ -1,0 +1,43 @@
+/* 全局视觉：与 Web 端同一套 —— 暖纸底 / 墨蓝 / 火锅红 */
+page {
+  background: #f4eee2;
+  color: #232f3b;
+  font-size: 28rpx;
+  font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.panel {
+  background: rgba(255, 252, 245, 0.75);
+  border: 1rpx solid #d8cbb2;
+  border-top: 6rpx solid #232f3b;
+  margin: 24rpx;
+  padding: 28rpx;
+}
+.panel-title {
+  font-size: 34rpx;
+  font-weight: 700;
+  letter-spacing: 4rpx;
+  margin-bottom: 24rpx;
+  display: flex;
+  align-items: center;
+}
+.panel-title .no {
+  background: #c8452e;
+  color: #f4eee2;
+  font-size: 24rpx;
+  padding: 4rpx 16rpx;
+  margin-right: 16rpx;
+}
+.btn-primary {
+  background: #232f3b;
+  color: #f4eee2;
+  font-size: 32rpx;
+  font-weight: 700;
+  letter-spacing: 8rpx;
+  padding: 22rpx 0;
+  text-align: center;
+  margin: 24rpx;
+}
+.btn-primary:active { background: #c8452e; }
+.lv1 { color: #2e9e6b; } .lv2 { color: #e8a13c; }
+.lv3 { color: #e2593b; } .lv4 { color: #b32d2d; }
+.muted { color: #5c6a78; font-size: 24rpx; }

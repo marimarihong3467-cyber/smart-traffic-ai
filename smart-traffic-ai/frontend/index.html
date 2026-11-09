@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智游山城 · AI 交通出行助手</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">
+    <div class="brand-mark">渝</div>
+    <div>
+      <h1>智游山城</h1>
+      <p class="tagline">AI 交通出行助手 · 两江四岸实时路况</p>
+    </div>
+  </div>
+  <div class="clock-panel">
+    <div class="clock-label">推演时刻</div>
+    <div class="clock-time" id="clock-time">10:00</div>
+    <div class="clock-badge" id="day-badge">工作日</div>
+  </div>
+</header>
+
+<div class="timebar">
+  <span class="timebar-label">时间轴</span>
+  <input type="range" id="hour-slider" min="6" max="23" step="1" value="10">
+  <div class="timebar-ticks">
+    <span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>23</span>
+  </div>
+  <button class="weather-btn active" data-weather="sunny">☀ 晴</button>
+  <button class="weather-btn" data-weather="rain">☂ 雨</button>
+  <button class="weather-btn" data-weather="fog">≋ 雾</button>
+</div>
+
+<main class="layout">
+
+  <!-- ═══ 地图区 ═══ -->
+  <section class="map-wrap">
+    <svg id="city-map" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="riverGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#9db8c4"/>
+          <stop offset="100%" stop-color="#7fa3b3"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 两江：嘉陵江 + 长江 -->
+      <path class="river" d="M-20,120 C180,170 320,240 420,300 C500,350 560,420 640,470 C720,520 860,560 1020,575"
+            stroke="url(#riverGrad)" fill="none"/>
+      <path class="river" d="M-20,470 C120,455 260,430 380,400 C480,375 560,360 640,350 C760,335 880,330 1020,335"
+            stroke="url(#riverGrad)" fill="none"/>
+      <text class="river-label" x="255" y="248" transform="rotate(28 255 248)">嘉 陵 江</text>
+      <text class="river-label" x="700" y="345">长 江</text>
+
+      <g id="edge-layer"></g>
+      <g id="node-layer"></g>
+    </svg>
+
+    <div class="map-legend">
+      <div class="legend-title">路段状态</div>
+      <div class="legend-item"><i style="background:#2e9e6b"></i>畅通</div>
+      <div class="legend-item"><i style="background:#e8a13c"></i>缓行</div>
+      <div class="legend-item"><i style="background:#e2593b"></i>拥堵</div>
+      <div class="legend-item"><i style="background:#b32d2d"></i>严重拥堵</div>
+      <div class="legend-hint">点击地图上的景点 → 加入行程</div>
+    </div>
+    <div class="map-caption">示意图，非实测导航地图 · 点击节点交互</div>
+  </section>
+
+  <!-- ═══ 侧栏 ═══ -->
+  <aside class="side">
+
+    <!-- 路线规划 -->
+    <section class="panel">
+      <h2><span class="panel-no">壹</span> AI 路线规划</h2>
+
+      <label class="field">
+        <span>出发点</span>
+        <select id="start-select"></select>
+      </label>
+
+      <div class="field">
+        <span>想去的景点 <em>（点地图或勾选，按顺序排）</em></span>
+        <div class="poi-chips" id="poi-chips"></div>
+      </div>
+
+      <label class="field">
+        <span>出发时间</span>
+        <input type="time" id="depart-time" value="09:00">
+      </label>
+
+      <button class="btn-primary" id="plan-btn">生成行程方案</button>
+
+      <div class="plan-result" id="plan-result">
+        <div class="empty-state">选好出发点和景点，<br>AI 会按<b>实时拥堵预测</b>排最优游览顺序。</div>
+      </div>
+    </section>
+
+    <!-- AI 问答 -->
+    <section class="panel">
+      <h2><span class="panel-no">贰</span> AI 出行顾问</h2>
+      <div class="chat-log" id="chat-log">
+        <div class="msg bot">你好，我是山城出行顾问 🏙️<br>可以问我：「洪崖洞什么时候去不堵？」「下雨天去哪玩？」</div>
+      </div>
+      <div class="quick-asks">
+        <button class="chip-q">洪崖洞什么时候去不堵？</button>
+        <button class="chip-q">从北站去磁器口怎么走？</button>
+        <button class="chip-q">下雨天推荐去哪？</button>
+        <button class="chip-q">长江索道要排多久？</button>
+      </div>
+      <form class="chat-form" id="chat-form">
+        <input type="text" id="chat-input" placeholder="问点什么…（回车发送）" autocomplete="off">
+        <button type="submit" class="btn-send">问</button>
+      </form>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  2026 川渝大学生“数智”作品设计应用技能大赛 · 人工智能+应用组 &nbsp;|&nbsp; 作品演示系统 — 路况为模型推演数据，实际出行请以交管部门发布为准
+</footer>
+
+<script src="js/app.js"></script>
+</body>
+</html>

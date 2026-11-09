@@ -1,0 +1,25 @@
+{
+  "pages": [
+    "pages/traffic/index",
+    "pages/plan/index",
+    "pages/chat/index"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#232f3b",
+    "navigationBarTitleText": "智游山城",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f4eee2"
+  },
+  "tabBar": {
+    "color": "#5c6a78",
+    "selectedColor": "#c8452e",
+    "backgroundColor": "#f4eee2",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/traffic/index", "text": "实时路况" },
+      { "pagePath": "pages/plan/index", "text": "AI 规划" },
+      { "pagePath": "pages/chat/index", "text": "出行顾问" }
+    ]
+  },
+  "sitemapLocation": "sitemap.json"
+}

@@ -1,0 +1,35 @@
+.field { margin-bottom: 26rpx; }
+.label { display: block; font-size: 24rpx; color: #5c6a78; letter-spacing: 3rpx; margin-bottom: 12rpx; }
+.picker-val {
+  border: 1rpx solid #d8cbb2; background: #f4eee2;
+  padding: 18rpx 22rpx; font-size: 28rpx;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 14rpx; }
+.chip {
+  border: 1rpx solid #d8cbb2; background: #f4eee2;
+  padding: 12rpx 24rpx; font-size: 25rpx;
+}
+.chip.on { background: #c8452e; color: #f4eee2; border-color: #9c2f1d; }
+
+.trip-head {
+  display: flex; justify-content: space-between;
+  border-bottom: 1rpx solid #d8cbb2; padding-bottom: 14rpx; margin-bottom: 18rpx;
+  font-size: 26rpx;
+}
+.stop { display: flex; gap: 18rpx; padding: 16rpx 0; }
+.stop-seq {
+  width: 44rpx; height: 44rpx; background: #c8452e; color: #f4eee2;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24rpx; flex-shrink: 0;
+}
+.stop-name { font-size: 29rpx; font-weight: 700; margin-bottom: 6rpx; }
+.ride {
+  margin-top: 12rpx; background: #ece2cf; padding: 14rpx 18rpx;
+  font-size: 23rpx; line-height: 1.7;
+}
+.advice {
+  margin-top: 22rpx; background: #fdf3e7;
+  border-left: 6rpx solid #c8452e; padding: 18rpx 22rpx;
+  font-size: 24rpx; line-height: 1.9;
+}
+.advice-title { display: block; font-weight: 700; color: #9c2f1d; margin-bottom: 8rpx; letter-spacing: 4rpx; }

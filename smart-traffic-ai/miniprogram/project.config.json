@@ -1,0 +1,13 @@
+{
+  "description": "智游山城 · AI 交通出行助手 小程序端",
+  "appid": "touristappid",
+  "projectname": "smart-traffic-ai-miniprogram",
+  "compileType": "miniprogram",
+  "libVersion": "3.0.0",
+  "setting": {
+    "es6": true,
+    "postcss": true,
+    "minified": true,
+    "urlCheck": false
+  }
+}

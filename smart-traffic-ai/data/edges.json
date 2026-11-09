@@ -1,0 +1,19 @@
+[
+  {"id": "e1",  "name": "磁童路 / 轨道1号线",      "from": "cikou",        "to": "shapingba",       "km": 3.4,  "speed": 26, "base_jam": 0.25, "metro": "轨道1号线"},
+  {"id": "e2",  "name": "嘉陵路 / 轨道2号线",      "from": "shapingba",    "to": "liziba",          "km": 4.6,  "speed": 24, "base_jam": 0.35, "metro": "轨道2号线"},
+  {"id": "e18", "name": "嘉陵路·佛图关段",         "from": "liziba",       "to": "erchang",         "km": 2.1,  "speed": 18, "base_jam": 0.32},
+  {"id": "e4",  "name": "鹅岭—上清寺",             "from": "erchang",      "to": "limtang",         "km": 2.6,  "speed": 20, "base_jam": 0.42},
+  {"id": "e5",  "name": "中山三路·两路口",          "from": "erchang",      "to": "jiefangbei",      "km": 3.2,  "speed": 20, "base_jam": 0.48},
+  {"id": "e6",  "name": "人民路—曾家岩",            "from": "limtang",      "to": "beizhan",         "km": 6.8,  "speed": 28, "base_jam": 0.40},
+  {"id": "e7",  "name": "嘉滨路—千厮门",            "from": "limtang",      "to": "chaotianmen",     "km": 3.4,  "speed": 22, "base_jam": 0.45},
+  {"id": "e8",  "name": "朝天门—洪崖洞滨江步道",    "from": "chaotianmen",  "to": "hongyadong",      "km": 1.3,  "speed": 12, "base_jam": 0.50},
+  {"id": "e9",  "name": "沧白路—临江门",            "from": "hongyadong",   "to": "jiefangbei",      "km": 1.1,  "speed": 12, "base_jam": 0.55},
+  {"id": "e10", "name": "新华路—小什字",            "from": "jiefangbei",   "to": "changjiangsuodao","km": 1.6,  "speed": 14, "base_jam": 0.50},
+  {"id": "e11", "name": "东水门大桥—上新街",        "from": "changjiangsuodao", "to": "nanshan",     "km": 6.2,  "speed": 26, "base_jam": 0.30},
+  {"id": "e12", "name": "长江大桥—南滨路",          "from": "jiefangbei",   "to": "nanshan",         "km": 7.6,  "speed": 28, "base_jam": 0.38},
+  {"id": "e13", "name": "龙腾大道",                 "from": "jiefangbei",   "to": "huangjueping",    "km": 11.5, "speed": 30, "base_jam": 0.30},
+  {"id": "e14", "name": "建新北路 / 轨道3号线",      "from": "jiefangbei",   "to": "guanyinqiao",     "km": 7.2,  "speed": 28, "base_jam": 0.46, "metro": "轨道3号线"},
+  {"id": "e15", "name": "红旗河沟—重庆北站",        "from": "guanyinqiao",  "to": "beizhan",         "km": 5.6,  "speed": 28, "base_jam": 0.42},
+  {"id": "e16", "name": "嘉华大桥—江北嘴",          "from": "limtang",      "to": "guanyinqiao",     "km": 6.2,  "speed": 26, "base_jam": 0.44},
+  {"id": "e17", "name": "内环快速 / 轨道环线",      "from": "shapingba",    "to": "beizhan",         "km": 11.8, "speed": 34, "base_jam": 0.35, "metro": "轨道环线"}
+]
