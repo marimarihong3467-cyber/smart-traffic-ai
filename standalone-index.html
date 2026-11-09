@@ -1,0 +1,1127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>智游山城 · AI 交通出行助手</title>
+<meta name="description" content="AI+智慧文旅交通：拥堵预测、时间依赖路线规划、大模型出行问答。2026川渝大学生数智作品大赛参赛作品。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* 智游山城 · 视觉系统（静态站版，与后端版同源）
+   城市交通图 × 纸质导览手册：暖纸底、墨蓝字、火锅红点睛 */
+:root {
+  --paper: #f4eee2;
+  --paper-deep: #ece2cf;
+  --ink: #232f3b;
+  --ink-soft: #5c6a78;
+  --accent: #c8452e;
+  --accent-deep: #9c2f1d;
+  --teal: #2e6f6b;
+  --line: #d8cbb2;
+  --ok: #2e9e6b;
+  --warn: #e8a13c;
+  --bad: #e2593b;
+  --worst: #b32d2d;
+  --serif: "Noto Serif SC", serif;
+  --sans: "Noto Sans SC", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: var(--sans);
+  color: var(--ink);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 27px, rgba(35,47,59,.035) 27px 28px),
+    var(--paper);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 报头 ── */
+.masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: clamp(14px, 2.5vw, 26px) clamp(18px, 4vw, 48px);
+  border-bottom: 3px double var(--ink);
+}
+.brand { display: flex; gap: 18px; align-items: center; }
+.brand-mark {
+  width: clamp(52px, 6vw, 72px); height: clamp(52px, 6vw, 72px);
+  background: var(--accent); color: var(--paper);
+  font-family: var(--serif); font-weight: 900;
+  font-size: clamp(28px, 3.4vw, 42px);
+  display: grid; place-items: center;
+  clip-path: polygon(12% 0, 100% 0, 100% 88%, 88% 100%, 0 100%, 0 12%);
+}
+.brand h1 {
+  font-family: var(--serif); font-weight: 900;
+  font-size: clamp(26px, 3.6vw, 44px);
+  letter-spacing: .12em; line-height: 1;
+}
+.tagline {
+  color: var(--ink-soft); margin-top: 6px;
+  font-size: clamp(11px, 1.3vw, 14px); letter-spacing: .22em;
+}
+.clock-panel { text-align: right; }
+.clock-label { font-size: 11px; letter-spacing: .3em; color: var(--ink-soft); }
+.live-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--ok); margin: 0 4px 1px 6px;
+  animation: pulse 2.2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; } 50% { opacity: .35; }
+}
+.clock-time {
+  font-family: var(--serif); font-weight: 900;
+  font-size: clamp(30px, 4vw, 52px); line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.clock-badge {
+  display: inline-block; margin-top: 6px;
+  background: var(--ink); color: var(--paper);
+  font-size: 11px; letter-spacing: .2em;
+  padding: 3px 12px;
+}
+.weather-line {
+  margin-top: 7px; font-size: 11px;
+  color: var(--teal); letter-spacing: .08em;
+}
+
+/* ── 时间轴 ── */
+.timebar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 12px clamp(18px, 4vw, 48px);
+  background: var(--paper-deep);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+.timebar-label {
+  font-family: var(--serif); font-weight: 600;
+  letter-spacing: .25em; font-size: 13px;
+}
+#hour-slider {
+  flex: 1; min-width: 160px;
+  -webkit-appearance: none; appearance: none;
+  height: 6px; background: var(--line); outline: none;
+}
+#hour-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 22px; height: 22px;
+  background: var(--accent);
+  border: 3px solid var(--paper);
+  box-shadow: 0 0 0 1px var(--accent-deep);
+  cursor: grab;
+}
+#hour-slider::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 0;
+  background: var(--accent); border: 3px solid var(--paper); cursor: grab;
+}
+.timebar-ticks {
+  display: flex; gap: 22px;
+  font-size: 10px; color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+.weather-btn {
+  font-family: var(--sans); font-size: 12px; letter-spacing: .08em;
+  padding: 6px 13px; cursor: pointer;
+  background: transparent; color: var(--ink-soft);
+  border: 1px solid var(--line);
+  transition: all .18s ease-out;
+}
+.weather-btn.active {
+  background: var(--ink); color: var(--paper); border-color: var(--ink);
+}
+.weather-btn.live-sync {
+  border-color: var(--teal); color: var(--teal);
+}
+.weather-btn.live-sync:hover { background: var(--teal); color: var(--paper); }
+
+/* ── 主布局 ── */
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  gap: clamp(16px, 2.5vw, 32px);
+  padding: clamp(16px, 2.5vw, 32px) clamp(18px, 4vw, 48px);
+}
+@media (max-width: 980px) { .layout { grid-template-columns: 1fr; } }
+
+/* ── 地图 ── */
+.map-wrap {
+  position: relative;
+  background: #efe7d6;
+  border: 1px solid var(--line);
+  box-shadow: 6px 6px 0 rgba(35,47,59,.10);
+}
+#city-map { display: block; width: 100%; height: auto; }
+
+.river { stroke-width: 34; stroke-linecap: round; opacity: .55; }
+.river-label {
+  fill: #6d8b99; font-family: var(--serif);
+  font-size: 17px; letter-spacing: .5em; opacity: .8;
+}
+
+.edge {
+  fill: none; stroke-linecap: round;
+  stroke-width: 7; opacity: .85;
+  transition: stroke .25s ease-out, stroke-width .18s;
+}
+.edge:hover { stroke-width: 11; opacity: 1; }
+
+.node-group { cursor: pointer; }
+.node-dot {
+  fill: var(--paper); stroke: var(--ink); stroke-width: 3;
+  transition: r .18s ease-out, fill .18s;
+}
+.node-group:hover .node-dot { fill: var(--accent); stroke: var(--accent-deep); }
+.node-group.selected .node-dot { fill: var(--accent); stroke: var(--accent-deep); }
+.node-label {
+  font-family: var(--sans); font-size: 13px; font-weight: 700;
+  fill: var(--ink); paint-order: stroke;
+  stroke: #efe7d6; stroke-width: 4px; stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.map-legend {
+  position: absolute; top: 14px; left: 14px;
+  background: rgba(244,238,226,.93);
+  border: 1px solid var(--line);
+  padding: 12px 16px; font-size: 12px;
+}
+.legend-title {
+  font-family: var(--serif); letter-spacing: .25em;
+  font-size: 11px; color: var(--ink-soft); margin-bottom: 8px;
+}
+.legend-item { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.legend-item i { width: 22px; height: 5px; display: inline-block; }
+.legend-hint {
+  margin-top: 10px; padding-top: 8px;
+  border-top: 1px dashed var(--line);
+  color: var(--accent-deep); font-size: 11px;
+}
+.map-caption {
+  position: absolute; right: 14px; bottom: 10px;
+  font-size: 10px; letter-spacing: .15em; color: var(--ink-soft);
+}
+
+/* ── 侧栏 ── */
+.side { display: flex; flex-direction: column; gap: clamp(16px, 2vw, 24px); }
+.panel {
+  background: rgba(255,252,245,.72);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--ink);
+  padding: clamp(16px, 2vw, 22px);
+}
+.panel h2 {
+  font-family: var(--serif); font-size: 19px; font-weight: 900;
+  letter-spacing: .14em; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
+}
+.panel-no {
+  background: var(--accent); color: var(--paper);
+  font-size: 12px; padding: 3px 9px; letter-spacing: .1em;
+}
+
+.field { display: block; margin-bottom: 14px; }
+.field > span {
+  display: block; font-size: 12px; letter-spacing: .12em;
+  color: var(--ink-soft); margin-bottom: 6px;
+}
+.field em { font-style: normal; opacity: .65; letter-spacing: 0; }
+select, input[type="time"], input[type="text"] {
+  width: 100%; padding: 10px 12px;
+  font-family: var(--sans); font-size: 14px;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line); outline: none;
+  transition: border-color .18s;
+}
+select:focus, input:focus { border-color: var(--accent); }
+
+.poi-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.poi-chip {
+  font-family: var(--sans); font-size: 12px;
+  padding: 7px 13px; cursor: pointer;
+  background: var(--paper); color: var(--ink);
+  border: 1px solid var(--line);
+  transition: all .16s ease-out;
+}
+.poi-chip:hover { border-color: var(--accent); color: var(--accent-deep); }
+.poi-chip.on {
+  background: var(--accent); color: var(--paper); border-color: var(--accent-deep);
+}
+
+.btn-primary {
+  width: 100%; padding: 13px;
+  font-family: var(--serif); font-size: 16px;
+  font-weight: 900; letter-spacing: .35em;
+  background: var(--ink); color: var(--paper);
+  border: none; cursor: pointer;
+  transition: background .18s, transform .12s;
+}
+.btn-primary:hover { background: var(--accent); }
+.btn-primary:active { transform: translateY(1px); }
+
+/* ── 行程结果 ── */
+.plan-result { margin-top: 16px; }
+.empty-state {
+  padding: 22px 14px; text-align: center;
+  color: var(--ink-soft); font-size: 13px; line-height: 1.9;
+  border: 1px dashed var(--line);
+}
+.trip-head {
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--ink-soft);
+  border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 12px;
+}
+.trip-head b { color: var(--accent-deep); font-size: 15px; }
+
+.stop-item {
+  display: flex; gap: 12px;
+  padding: 10px 0; position: relative;
+}
+.stop-item::before {
+  content: ""; position: absolute;
+  left: 11px; top: 30px; bottom: -8px;
+  width: 2px; background: var(--line);
+}
+.stop-item:last-child::before { display: none; }
+.stop-seq {
+  width: 24px; height: 24px; flex-shrink: 0;
+  background: var(--accent); color: var(--paper);
+  font-size: 12px; font-weight: 700;
+  display: grid; place-items: center;
+  position: relative; z-index: 1;
+}
+.stop-name { font-weight: 700; font-size: 14px; }
+.stop-time {
+  font-size: 11px; color: var(--ink-soft);
+  margin-top: 3px; font-variant-numeric: tabular-nums;
+}
+.ride-note {
+  margin: 4px 0 6px 36px; padding: 7px 10px;
+  background: var(--paper-deep);
+  font-size: 11px; color: var(--ink-soft); line-height: 1.7;
+}
+.ride-note .jam { font-weight: 700; }
+.lv1 { color: var(--ok); } .lv2 { color: var(--warn); }
+.lv3 { color: var(--bad); } .lv4 { color: var(--worst); }
+
+.advice-box {
+  margin-top: 14px; padding: 12px 14px;
+  background: #fdf3e7; border-left: 3px solid var(--accent);
+  font-size: 12px; line-height: 1.9;
+}
+.advice-box b { color: var(--accent-deep); letter-spacing: .15em; }
+
+/* ── 聊天 ── */
+.chat-log {
+  max-height: 240px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 10px;
+  padding-right: 4px;
+}
+.msg {
+  padding: 10px 13px; font-size: 13px; line-height: 1.8;
+  max-width: 92%; animation: rise .28s ease-out;
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg.bot {
+  background: var(--paper-deep);
+  border-left: 3px solid var(--teal);
+  align-self: flex-start;
+}
+.msg.user {
+  background: var(--ink); color: var(--paper);
+  align-self: flex-end;
+}
+.msg .src-tag {
+  display: inline-block; margin-top: 6px;
+  font-size: 10px; letter-spacing: .12em; opacity: .65;
+}
+.quick-asks { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.chip-q {
+  font-family: var(--sans); font-size: 11px;
+  padding: 5px 10px; cursor: pointer;
+  background: transparent; color: var(--teal);
+  border: 1px solid var(--teal); border-radius: 99px;
+  transition: all .16s;
+}
+.chip-q:hover { background: var(--teal); color: var(--paper); }
+
+.chat-form { display: flex; gap: 8px; }
+.btn-send {
+  padding: 0 20px;
+  background: var(--accent); color: var(--paper);
+  border: none; cursor: pointer;
+  font-family: var(--serif); font-size: 15px; letter-spacing: .2em;
+  transition: background .18s;
+}
+.btn-send:hover { background: var(--accent-deep); }
+
+/* ── 页脚 ── */
+.foot {
+  padding: 14px clamp(18px, 4vw, 48px);
+  border-top: 1px solid var(--line);
+  font-size: 11px; letter-spacing: .08em;
+  color: var(--ink-soft);
+}
+
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="brand">
+    <div class="brand-mark">渝</div>
+    <div>
+      <h1>智游山城</h1>
+      <p class="tagline">AI 交通出行助手 · 两江四岸实时路况</p>
+    </div>
+  </div>
+  <div class="clock-panel">
+    <div class="clock-label">现在时间 <span id="live-dot" class="live-dot"></span><span id="live-tag">在线</span></div>
+    <div class="clock-time" id="clock-time">--:--</div>
+    <div class="clock-badge" id="day-badge">加载中</div>
+    <div class="weather-line" id="weather-line">实时天气获取中…</div>
+  </div>
+</header>
+
+<div class="timebar">
+  <span class="timebar-label">推演时刻</span>
+  <input type="range" id="hour-slider" min="6" max="23" step="1" value="10">
+  <div class="timebar-ticks">
+    <span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>23</span>
+  </div>
+  <button class="weather-btn active" data-weather="sunny">☀ 晴</button>
+  <button class="weather-btn" data-weather="cloudy">☁ 阴</button>
+  <button class="weather-btn" data-weather="rain">☂ 雨</button>
+  <button class="weather-btn" data-weather="fog">≋ 雾</button>
+  <button class="weather-btn live-sync" id="use-live-weather">↻ 同步实况</button>
+</div>
+
+<main class="layout">
+
+  <!-- ═══ 地图区 ═══ -->
+  <section class="map-wrap">
+    <svg id="city-map" viewBox="0 0 1000 620" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id="riverGrad" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#9db8c4"/>
+          <stop offset="100%" stop-color="#7fa3b3"/>
+        </linearGradient>
+      </defs>
+
+      <!-- 两江：嘉陵江 + 长江 -->
+      <path class="river" d="M-20,120 C180,170 320,240 420,300 C500,350 560,420 640,470 C720,520 860,560 1020,575"
+            stroke="url(#riverGrad)" fill="none"/>
+      <path class="river" d="M-20,470 C120,455 260,430 380,400 C480,375 560,360 640,350 C760,335 880,330 1020,335"
+            stroke="url(#riverGrad)" fill="none"/>
+      <text class="river-label" x="255" y="248" transform="rotate(28 255 248)">嘉 陵 江</text>
+      <text class="river-label" x="700" y="345">长 江</text>
+
+      <g id="edge-layer"></g>
+      <g id="node-layer"></g>
+    </svg>
+
+    <div class="map-legend">
+      <div class="legend-title">路段状态</div>
+      <div class="legend-item"><i style="background:#2e9e6b"></i>畅通</div>
+      <div class="legend-item"><i style="background:#e8a13c"></i>缓行</div>
+      <div class="legend-item"><i style="background:#e2593b"></i>拥堵</div>
+      <div class="legend-item"><i style="background:#b32d2d"></i>严重拥堵</div>
+      <div class="legend-hint">点击地图上的景点 → 加入行程</div>
+    </div>
+    <div class="map-caption">示意图，非实测导航地图 · 模型推演数据</div>
+  </section>
+
+  <!-- ═══ 侧栏 ═══ -->
+  <aside class="side">
+
+    <!-- 路线规划 -->
+    <section class="panel">
+      <h2><span class="panel-no">壹</span> AI 路线规划</h2>
+
+      <label class="field">
+        <span>出发点</span>
+        <select id="start-select"></select>
+      </label>
+
+      <div class="field">
+        <span>想去的景点 <em>（点地图或勾选，按顺序排）</em></span>
+        <div class="poi-chips" id="poi-chips"></div>
+      </div>
+
+      <label class="field">
+        <span>出发时间</span>
+        <input type="time" id="depart-time" value="09:00">
+      </label>
+
+      <button class="btn-primary" id="plan-btn">生成行程方案</button>
+
+      <div class="plan-result" id="plan-result">
+        <div class="empty-state">选好出发点和景点，<br>AI 会按<b>实时拥堵预测</b>排最优游览顺序。</div>
+      </div>
+    </section>
+
+    <!-- AI 问答 -->
+    <section class="panel">
+      <h2><span class="panel-no">贰</span> AI 出行顾问</h2>
+      <div class="chat-log" id="chat-log">
+        <div class="msg bot">你好，我是山城出行顾问 🏙️<br>可以问我：「洪崖洞什么时候去不堵？」「下雨天去哪玩？」</div>
+      </div>
+      <div class="quick-asks">
+        <button class="chip-q">洪崖洞什么时候去不堵？</button>
+        <button class="chip-q">从北站去磁器口怎么走？</button>
+        <button class="chip-q">下雨天推荐去哪？</button>
+        <button class="chip-q">长江索道要排多久？</button>
+      </div>
+      <form class="chat-form" id="chat-form">
+        <input type="text" id="chat-input" placeholder="问点什么…（回车发送）" autocomplete="off">
+        <button type="submit" class="btn-send">问</button>
+      </form>
+    </section>
+  </aside>
+</main>
+
+<footer class="foot">
+  2026 川渝大学生“数智”作品设计应用技能大赛 · 人工智能+应用组 &nbsp;|&nbsp;
+  路况为模型推演数据，天气来自 Open-Meteo 实况接口，实际出行请以交管部门发布为准
+</footer>
+
+<script>window.__STATIC_DATA={"attractions": [{"id": "cikou", "name": "磁器口古镇", "alias": ["磁器口"], "x": 130, "y": 185, "stay_min": 120, "popularity": 0.78, "night": false, "metro": "轨道1号线 磁器口站", "best": "上午 9:00 前到达可避开团队客流", "tips": "古镇主街节假日极度拥挤，可走后街马鞍山观景台；陈麻花排队多，分店口味接近。"}, {"id": "shapingba", "name": "沙坪坝·三峡广场", "alias": ["沙坪坝", "三峡广场"], "x": 235, "y": 235, "stay_min": 60, "popularity": 0.6, "night": false, "metro": "轨道1号线/环线 沙坪坝站", "best": "工作日下午", "tips": "商圈地下步行街四通八达，雨天可全程室内换乘。"}, {"id": "liziba", "name": "李子坝·轻轨穿楼", "alias": ["李子坝"], "x": 352, "y": 252, "stay_min": 45, "popularity": 0.72, "night": false, "metro": "轨道2号线 李子坝站", "best": "平峰时段，站台车头视角最佳", "tips": "观景平台在出站后靠江一侧；列车约 5 分钟一趟，不必久等。"}, {"id": "erchang", "name": "鹅岭贰厂文创园", "alias": ["鹅岭二厂", "鹅岭贰厂", "贰厂", "鹅岭"], "x": 422, "y": 302, "stay_min": 90, "popularity": 0.55, "night": true, "metro": "轨道1号线 鹅岭站", "best": "傍晚来，日落与夜景一次看", "tips": "《从你的全世界路过》取景地，天台需排队；山路多，穿舒适鞋。"}, {"id": "beizhan", "name": "重庆北站", "alias": ["重庆北站", "北站"], "x": 432, "y": 112, "stay_min": 60, "popularity": 0.5, "night": false, "metro": "轨道3号线/10号线 重庆北站", "best": "节假日预留 60 分钟以上进站", "tips": "南广场北广场相距远，打车务必确认上车点；安检排队节假日翻倍。"}, {"id": "guanyinqiao", "name": "观音桥商圈", "alias": ["观音桥"], "x": 562, "y": 152, "stay_min": 90, "popularity": 0.68, "night": true, "metro": "轨道3号线/9号线 观音桥站", "best": "晚间灯光氛围最好", "tips": "不夜九街夜生活集中，22 点后打车排队较长。"}, {"id": "limtang", "name": "人民大礼堂·三峡博物馆", "alias": ["人民大礼堂", "三峡博物馆", "大礼堂"], "x": 478, "y": 222, "stay_min": 90, "popularity": 0.5, "night": false, "metro": "轨道2号线/10号线 大礼堂站", "best": "上午参观博物馆（需预约）", "tips": "周一博物馆闭馆；两馆隔广场相望，安排半天刚好。"}, {"id": "chaotianmen", "name": "朝天门·两江交汇", "alias": ["朝天门"], "x": 542, "y": 258, "stay_min": 60, "popularity": 0.7, "night": true, "metro": "轨道1号线/6号线 朝天门站", "best": "傍晚看两江分色 + 来福士夜景", "tips": "游船班次多，节假日建议提前网购票；江边风大注意保暖。"}, {"id": "hongyadong", "name": "洪崖洞", "alias": ["洪崖洞"], "x": 506, "y": 296, "stay_min": 75, "popularity": 0.95, "night": true, "metro": "轨道1号线 小什字站 / 2号线 临江门站", "best": "19:00–22:00 灯光最美，但也是人流巅峰", "tips": "节假日单向通行与限流，建议 21:30 后错峰；1 楼与 11 楼都是马路，没走错。"}, {"id": "jiefangbei", "name": "解放碑步行街", "alias": ["解放碑"], "x": 548, "y": 322, "stay_min": 90, "popularity": 0.88, "night": true, "metro": "轨道1号线/2号线/6号线 小什字·较场口", "best": "平日白天逛街，跨年夜千万别去", "tips": "八一好吃街人贴人，可往较场口方向分流；地下环道打车上车点难找。"}, {"id": "changjiangsuodao", "name": "长江索道", "alias": ["长江索道", "索道"], "x": 586, "y": 384, "stay_min": 60, "popularity": 0.82, "night": true, "metro": "轨道1号线/6号线 小什字站", "best": "工作日 15:00 前或 21:00 后排队较短", "tips": "建议单程体验 + 对岸公交返回；高峰排队可达 2 小时，关注官方小程序实时排队。"}, {"id": "nanshan", "name": "南山一棵树观景台", "alias": ["南山一棵树", "一棵树", "南山"], "x": 702, "y": 432, "stay_min": 90, "popularity": 0.7, "night": true, "metro": "公交 384 / 观光巴士", "best": "日落前 40 分钟抵达，白天夜景一次看", "tips": "下山末班公交较早，夜间建议打车；山上温差大。"}, {"id": "huangjueping", "name": "黄桷坪·川美涂鸦街", "alias": ["黄桷坪", "川美", "涂鸦街"], "x": 358, "y": 472, "stay_min": 90, "popularity": 0.42, "night": false, "metro": "公交 223/441", "best": "晴天下午光线适合拍照", "tips": "交通茶馆保留老重庆市井味；铁路四村适合 city walk。"}], "edges": [{"id": "e1", "name": "磁童路 / 轨道1号线", "from": "cikou", "to": "shapingba", "km": 3.4, "speed": 26, "base_jam": 0.25, "metro": "轨道1号线"}, {"id": "e2", "name": "嘉陵路 / 轨道2号线", "from": "shapingba", "to": "liziba", "km": 4.6, "speed": 24, "base_jam": 0.35, "metro": "轨道2号线"}, {"id": "e18", "name": "嘉陵路·佛图关段", "from": "liziba", "to": "erchang", "km": 2.1, "speed": 18, "base_jam": 0.32}, {"id": "e4", "name": "鹅岭—上清寺", "from": "erchang", "to": "limtang", "km": 2.6, "speed": 20, "base_jam": 0.42}, {"id": "e5", "name": "中山三路·两路口", "from": "erchang", "to": "jiefangbei", "km": 3.2, "speed": 20, "base_jam": 0.48}, {"id": "e6", "name": "人民路—曾家岩", "from": "limtang", "to": "beizhan", "km": 6.8, "speed": 28, "base_jam": 0.4}, {"id": "e7", "name": "嘉滨路—千厮门", "from": "limtang", "to": "chaotianmen", "km": 3.4, "speed": 22, "base_jam": 0.45}, {"id": "e8", "name": "朝天门—洪崖洞滨江步道", "from": "chaotianmen", "to": "hongyadong", "km": 1.3, "speed": 12, "base_jam": 0.5}, {"id": "e9", "name": "沧白路—临江门", "from": "hongyadong", "to": "jiefangbei", "km": 1.1, "speed": 12, "base_jam": 0.55}, {"id": "e10", "name": "新华路—小什字", "from": "jiefangbei", "to": "changjiangsuodao", "km": 1.6, "speed": 14, "base_jam": 0.5}, {"id": "e11", "name": "东水门大桥—上新街", "from": "changjiangsuodao", "to": "nanshan", "km": 6.2, "speed": 26, "base_jam": 0.3}, {"id": "e12", "name": "长江大桥—南滨路", "from": "jiefangbei", "to": "nanshan", "km": 7.6, "speed": 28, "base_jam": 0.38}, {"id": "e13", "name": "龙腾大道", "from": "jiefangbei", "to": "huangjueping", "km": 11.5, "speed": 30, "base_jam": 0.3}, {"id": "e14", "name": "建新北路 / 轨道3号线", "from": "jiefangbei", "to": "guanyinqiao", "km": 7.2, "speed": 28, "base_jam": 0.46, "metro": "轨道3号线"}, {"id": "e15", "name": "红旗河沟—重庆北站", "from": "guanyinqiao", "to": "beizhan", "km": 5.6, "speed": 28, "base_jam": 0.42}, {"id": "e16", "name": "嘉华大桥—江北嘴", "from": "limtang", "to": "guanyinqiao", "km": 6.2, "speed": 26, "base_jam": 0.44}, {"id": "e17", "name": "内环快速 / 轨道环线", "from": "shapingba", "to": "beizhan", "km": 11.8, "speed": 34, "base_jam": 0.35, "metro": "轨道环线"}], "knowledge": [{"id": "k1", "poi": "hongyadong", "keywords": ["洪崖洞", "限流", "排队"], "answer": "洪崖洞节假日 19:00–22:00 是人流巅峰，景区会实行单向通行和限流。想看夜景又不想挤：21:30 后入场，或先去千厮门大桥上看全景。1 楼和 11 楼都是马路，这是山城地形，不是你走错了。"}, {"id": "k2", "poi": "changjiangsuodao", "keywords": ["索道", "长江索道", "排队"], "answer": "长江索道高峰排队可达 2 小时。建议工作日 15:00 前或 21:00 后乘坐，单程体验即可，对岸乘公交返回还能顺路逛龙门浩老街。"}, {"id": "k3", "poi": "jiefangbei", "keywords": ["解放碑", "好吃街", "八一"], "answer": "解放碑是渝中核心商圈，八一好吃街节假日人流量极大。建议白天逛街，吃小吃往较场口方向分流；跨年夜当晚整个渝中半岛实行交通管制，强烈不建议自驾。"}, {"id": "k4", "poi": "beizhan", "keywords": ["北站", "重庆北站", "高铁", "火车"], "answer": "重庆北站分南、北广场，打车一定要和司机确认上车点。节假日建议发车前 60 分钟到站，轨道交通 3 号线/10 号线可达，但高峰期 3 号线非常拥挤。"}, {"id": "k5", "poi": "liziba", "keywords": ["李子坝", "穿楼", "轻轨"], "answer": "李子坝轻轨穿楼：轨道 2 号线列车约 5 分钟一趟，观景平台在出站后靠江一侧。想拍车头视角就坐 2 号线第一节车厢。顺路可走山城步道第三步道。"}, {"id": "k6", "poi": null, "keywords": ["自驾", "停车", "开车"], "answer": "节假日强烈不建议自驾进渝中半岛：洪崖洞—解放碑一带停车位一位难求，且多处单向通行和临时管制。建议把车停在酒店，出行靠轨道交通 + 步行 + 短途打车。"}, {"id": "k7", "poi": null, "keywords": ["天气", "下雨", "雾"], "answer": "重庆多雾多雨，山路湿滑。雨天优先安排室内项目（三峡博物馆、来福士、商圈），山城步道和南山观景台放晴天。出行前看一眼天气，我也会在路线里提示。"}, {"id": "k8", "poi": null, "keywords": ["穿", "鞋", "衣服", "走路"], "answer": "重庆是山城，台阶和坡道非常多，务必穿防滑舒适的鞋。昼夜温差加上江风，即使是夏天也建议带一件薄外套，尤其去南山一棵树看夜景。"}, {"id": "k9", "poi": "nanshan", "keywords": ["南山", "一棵树", "夜景"], "answer": "南山一棵树是看渝中半岛夜景的最佳机位，建议日落前 40 分钟抵达，白天和夜景一次看完。下山末班公交较早，夜间建议打车，山上温度比市区低 3–5℃。"}, {"id": "k10", "poi": "cikou", "keywords": ["磁器口", "古镇", "麻花"], "answer": "磁器口节假日主街非常拥挤，建议上午 9 点前到。逛主街 20 分钟后可转后街和马鞍山观景台，人少清静还能俯瞰嘉陵江。陈麻花排队最长的店不代表最好吃。"}, {"id": "k11", "poi": null, "keywords": ["轨道交通", "地铁", "轻轨", "公交"], "answer": "重庆轨道交通覆盖主要景点：1 号线（磁器口—朝天门）、2 号线（李子坝—解放碑沿线江景）、3 号线（北站—观音桥）、6 号线、环线。节假日 2 号线本身也是景点，江景段值得坐。支持交通联合卡和手机 NFC。"}, {"id": "k12", "poi": null, "keywords": ["错峰", "人少", "什么时候"], "answer": "错峰总原则：景点赶早（开门后 1 小时内），商圈赶晚（20 点后），洪崖洞看灯光选 21:30 后，索道选工作日 15 点前。节假日 11:00–16:00 是全城出行高峰，尽量安排室内或冷门景点。"}, {"id": "k13", "poi": null, "keywords": ["火锅", "吃", "美食"], "answer": "吃火锅避坑：解放碑、洪崖洞周边网红店排队 2 小时是常态，往大坪、观音桥、南坪方向走 2 公里，本地老店排队少一半。怕辣可以点鸳鸯锅，香油碟是标配。"}, {"id": "k14", "poi": null, "keywords": ["一日游", "半日", "行程", "规划", "路线"], "answer": "行程规划建议直接用本页的「AI 路线规划」：选好出发点和想去的景点、出发时间，系统会结合实时拥堵预测给出游览顺序、每段交通方式和错峰建议。"}]};</script>
+<script>
+/* ═══════════════════════════════════════════════════════
+   智游山城 · 浏览器端计算引擎（纯静态，零后端）
+   与 backend/ 算法逐行对齐：拥堵预测 / 时间依赖路径规划 / 知识检索
+   ═══════════════════════════════════════════════════════ */
+"use strict";
+
+/* ---------- 拥堵预测模型 ---------- */
+const TrafficModel = (() => {
+  const WORKDAY = [0.28, 0.22, 0.20, 0.18, 0.20, 0.35, 0.62, 0.88,
+                   0.95, 0.82, 0.68, 0.72, 0.80, 0.70, 0.66, 0.74,
+                   0.86, 0.96, 0.92, 0.78, 0.62, 0.50, 0.40, 0.33];
+  const HOLIDAY = [0.30, 0.24, 0.20, 0.18, 0.20, 0.28, 0.42, 0.58,
+                   0.72, 0.86, 0.94, 0.98, 0.92, 0.88, 0.90, 0.96,
+                   1.00, 0.98, 0.94, 0.90, 0.86, 0.78, 0.64, 0.48];
+  const WEATHER = { sunny: 1.0, cloudy: 1.03, rain: 1.18, fog: 1.12 };
+
+  // CRC32（与 Python zlib.crc32 一致）→ 保证双端输出确定性一致
+  const CRC_TABLE = (() => {
+    const t = new Uint32Array(256);
+    for (let n = 0; n < 256; n++) {
+      let c = n;
+      for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+      t[n] = c >>> 0;
+    }
+    return t;
+  })();
+  function crc32(str) {
+    let c = 0xffffffff;
+    for (let i = 0; i < str.length; i++) {
+      c = CRC_TABLE[(c ^ str.charCodeAt(i)) & 0xff] ^ (c >>> 8);
+    }
+    return (c ^ 0xffffffff) >>> 0;
+  }
+
+  function hashNoise(edgeId, hour) {
+    return ((crc32(edgeId + ":" + hour) & 0xffff) / 65535 - 0.5) * 0.1;
+  }
+
+  function isHoliday(d) {
+    d = d || new Date();
+    if (d.getDay() >= 5) return true;
+    const md = [d.getMonth() + 1, d.getDate()];
+    const win = [[5,1],[5,2],[5,3],[10,1],[10,2],[10,3],[10,4],[10,5],[10,6],[10,7],[1,1],[1,2]];
+    return win.some(([m, dd]) => m === md[0] && dd === md[1]);
+  }
+
+  function baseline(hour, holiday) {
+    const t = holiday ? HOLIDAY : WORKDAY;
+    return t[Math.max(0, Math.min(23, hour | 0))];
+  }
+
+  /** 拥堵放大系数 [1.0, 3.2] */
+  function congestionRatio(edge, dt, weather) {
+    weather = weather || "sunny";
+    const base = baseline(dt.getHours(), isHoliday(dt));
+    const heat = edge.heat != null ? edge.heat : 0.5;
+    const holidayAmp = 1 + (isHoliday(dt) ? 0.35 * heat : 0);
+    let ratio = 1 + base * 1.35 * holidayAmp * (WEATHER[weather] || 1);
+    ratio *= 1 + hashNoise(edge.id, dt.getHours());
+    return Math.round(Math.max(1, Math.min(3.2, ratio)) * 100) / 100;
+  }
+
+  function edgeTravelMinutes(edge, dt, weather) {
+    const free = (edge.km / edge.speed) * 60;
+    return Math.round(free * congestionRatio(edge, dt, weather) * 10) / 10;
+  }
+
+  function corridorReport(edges, dt, weather) {
+    return edges.map((e) => {
+      const r = congestionRatio(e, dt, weather);
+      const level = r < 1.45 ? "畅通" : r < 2.0 ? "缓行" : r < 2.6 ? "拥堵" : "严重拥堵";
+      return { id: e.id, name: e.name, from: e.from, to: e.to, km: e.km,
+               ratio: r, minutes: edgeTravelMinutes(e, dt, weather), level };
+    });
+  }
+
+  return { isHoliday, congestionRatio, edgeTravelMinutes, corridorReport, baseline };
+})();
+
+/* ---------- 时间依赖路径规划 + 行程编排 ---------- */
+const RoutePlanner = (() => {
+  class MinHeap {
+    constructor() { this.a = []; }
+    push(x) {
+      const a = this.a; a.push(x);
+      let i = a.length - 1;
+      while (i > 0) {
+        const p = (i - 1) >> 1;
+        if (a[p][0] <= a[i][0]) break;
+        [a[p], a[i]] = [a[i], a[p]]; i = p;
+      }
+    }
+    pop() {
+      const a = this.a;
+      const top = a[0], last = a.pop();
+      if (a.length) {
+        a[0] = last;
+        let i = 0;
+        for (;;) {
+          const l = 2 * i + 1, r = l + 1;
+          let m = i;
+          if (l < a.length && a[l][0] < a[m][0]) m = l;
+          if (r < a.length && a[r][0] < a[m][0]) m = r;
+          if (m === i) break;
+          [a[m], a[i]] = [a[i], a[m]]; i = m;
+        }
+      }
+      return top;
+    }
+    get size() { return this.a.length; }
+  }
+
+  class Planner {
+    constructor(attractions, edges) {
+      this.attractions = Object.fromEntries(attractions.map((a) => [a.id, a]));
+      this.edges = edges;
+      this.adj = {};
+      attractions.forEach((a) => (this.adj[a.id] = []));
+      edges.forEach((e) => { this.adj[e.from].push(e); this.adj[e.to].push(e); });
+    }
+
+    static mode(edge) {
+      if (edge.metro) return edge.metro;
+      return edge.km > 2.5 ? "打车/公交" : "步行+公交";
+    }
+
+    /** 时间依赖 Dijkstra */
+    shortestPath(src, dst, start, weather) {
+      if (!(src in this.adj) || !(dst in this.adj)) return null;
+      const dist = { [src]: 0 };
+      const prev = {};
+      const pq = new MinHeap();
+      pq.push([0, src]);
+      while (pq.size) {
+        const [d, u] = pq.pop();
+        if (u === dst) break;
+        if (d > (dist[u] ?? Infinity)) continue;
+        const tU = new Date(start.getTime() + d * 60000);
+        for (const e of this.adj[u]) {
+          const v = e.from === u ? e.to : e.from;
+          const w = TrafficModel.edgeTravelMinutes(e, tU, weather);
+          const nd = d + w;
+          if (nd < (dist[v] ?? Infinity)) {
+            dist[v] = nd; prev[v] = [u, e];
+            pq.push([nd, v]);
+          }
+        }
+      }
+      if (!(dst in prev) && dst !== src) return null;
+
+      const legs = [];
+      let cur = dst;
+      while (cur !== src) {
+        const [u, e] = prev[cur];
+        const tU = new Date(start.getTime() + dist[u] * 60000);
+        legs.push({
+          edge_id: e.id, road: e.name, from: u, to: cur, km: e.km,
+          depart: fmtTime(tU),
+          minutes: TrafficModel.edgeTravelMinutes(e, tU, weather),
+          mode: Planner.mode(e),
+          congestion: TrafficModel.congestionRatio(e, tU, weather),
+        });
+        cur = u;
+      }
+      legs.reverse();
+      return { minutes: Math.round(dist[dst] * 10) / 10, legs };
+    }
+
+    /** 贪心行程编排 */
+    planTrip(startId, poiIds, startTime, weather) {
+      let remaining = poiIds.filter((p) => p !== startId);
+      const order = [];
+      let cur = startId, curT = startTime;
+      const segments = [];
+      let totalRide = 0;
+
+      while (remaining.length) {
+        let best = null;
+        for (const pid of remaining) {
+          const sp = this.shortestPath(cur, pid, curT, weather);
+          if (!sp) continue;
+          const arriveMs = curT.getTime() + sp.minutes * 60000;
+          const key = [arriveMs, sp.minutes];
+          if (!best || key[0] < best.key[0] || (key[0] === best.key[0] && key[1] < best.key[1])) {
+            best = { key, pid, sp, arriveMs };
+          }
+        }
+        if (!best) break;
+        const { pid, sp, arriveMs } = best;
+        const stay = this.attractions[pid].stay_min;
+        const arrive = new Date(arriveMs);
+        segments.push({
+          to: pid,
+          to_name: this.attractions[pid].name,
+          legs: sp.legs,
+          ride_minutes: sp.minutes,
+          arrive: fmtTime(arrive),
+          leave: fmtTime(new Date(arriveMs + stay * 60000)),
+          stay_min: stay,
+        });
+        totalRide += sp.minutes;
+        order.push(pid);
+        cur = pid;
+        curT = new Date(arriveMs + stay * 60000);
+        remaining = remaining.filter((p) => p !== pid);
+      }
+
+      const advice = [];
+      for (const s of segments) {
+        const a = this.attractions[s.to];
+        const hh = parseInt(s.arrive.slice(0, 2), 10);
+        if (a.popularity >= 0.75 && hh >= 19 && hh <= 21) {
+          advice.push(`${a.name}到达时间 ${s.arrive} 正值夜景人流高峰，建议先在附近用餐，21:30 后入场可显著减少排队。`);
+        }
+        if (a.popularity >= 0.75 && hh >= 11 && hh <= 14) {
+          advice.push(`${a.name}到达时间 ${s.arrive} 处于午间高峰，可将游览顺序与冷门景点对调，错开 1-2 小时。`);
+        }
+      }
+      if (TrafficModel.isHoliday(startTime)) {
+        advice.push("今天是节假日/周末，渝中半岛热门路段全天压力较大，建议以轨道交通为主，预留 30% 机动时间。");
+      }
+
+      return {
+        start: startId,
+        start_name: this.attractions[startId].name,
+        depart: fmtTime(startTime),
+        order, segments,
+        total_ride_minutes: Math.round(totalRide * 10) / 10,
+        weather, advice,
+      };
+    }
+  }
+
+  function fmtTime(d) {
+    return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  return { Planner, fmtTime };
+})();
+
+/* ---------- 知识库检索（RAG 检索层） ---------- */
+const Knowledge = (() => {
+  const STOP = new Set(["的","了","吗","呢","怎么","如何","什么","请问","我想","一下","去","到","在"]);
+
+  function tokenize(text) {
+    const grams = new Set();
+    for (let i = 0; i < text.length - 1; i++) grams.add(text.slice(i, i + 2));
+    for (const w of STOP) if (text.includes(w)) grams.add(w);
+    return grams;
+  }
+
+  function retrieve(question, knowledge, topK = 2) {
+    const q = tokenize(question);
+    return knowledge
+      .map((item) => {
+        let score = (item.keywords || []).filter((kw) => question.includes(kw)).length;
+        const a = tokenize(item.answer || "");
+        let overlap = 0;
+        q.forEach((g) => { if (a.has(g)) overlap++; });
+        score += overlap * 0.15;
+        return { score, item };
+      })
+      .filter((x) => x.score > 0)
+      .sort((x, y) => y.score - x.score)
+      .slice(0, topK)
+      .map((x) => x.item);
+  }
+
+  function answer(question, knowledge) {
+    const hits = retrieve(question, knowledge);
+    if (hits.length) {
+      return { answer: hits.map((h) => h.answer).join("\n\n"), source: "retrieval", hits: hits.map((h) => h.id) };
+    }
+    return {
+      answer: "这个问题我暂时没有把握，可以换个说法，比如问「洪崖洞什么时候去不堵」或「从北站去磁器口怎么走」。也可以直接用 AI 路线规划。",
+      source: "retrieval", hits: [],
+    };
+  }
+
+  return { retrieve, answer };
+})();
+
+</script>
+<script>
+/* ═══════════════════════════════════════════════════════
+   智游山城 · 静态站交互逻辑（无后端，计算全在浏览器）
+   在线数据：Open-Meteo 实时天气 + 系统时钟 + 节假日自动识别
+   ═══════════════════════════════════════════════════════ */
+"use strict";
+
+const state = {
+  attractions: [],
+  edges: [],
+  knowledge: [],
+  selected: [],
+  start: null,
+  hour: new Date().getHours(),
+  weather: "sunny",
+  liveWeather: null,   // Open-Meteo 实况
+};
+
+const $ = (s) => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+
+/* ── 初始化：加载本地数据 + 在线实况 ── */
+async function init() {
+  // 单文件版：数据已内联；普通版：从 data/*.json 读取
+  const [atts, eds, kb] = window.__STATIC_DATA
+    ? [window.__STATIC_DATA.attractions, window.__STATIC_DATA.edges, window.__STATIC_DATA.knowledge]
+    : await Promise.all([
+        fetch("data/attractions.json").then((r) => r.json()),
+        fetch("data/edges.json").then((r) => r.json()),
+        fetch("data/knowledge.json").then((r) => r.json()),
+      ]);
+  state.attractions = atts;
+  state.edges = eds;
+  state.knowledge = kb;
+  state.start = atts.find((a) => a.id === "beizhan") ? "beizhan" : atts[0].id;
+
+  // 时间轴默认跟随当前时刻
+  const h = Math.min(23, Math.max(6, state.hour));
+  state.hour = h;
+  $("#hour-slider").value = h;
+
+  renderNodes();
+  renderChips();
+  fillStartSelect();
+  refreshTraffic();
+  bindEvents();
+  startClock();
+  fetchLiveWeather();
+}
+
+/* ── 实时时钟（在线时间） ── */
+function startClock() {
+  const tick = () => {
+    const now = new Date();
+    $("#clock-time").textContent =
+      String(now.getHours()).padStart(2, "0") + ":" + String(now.getMinutes()).padStart(2, "0");
+    const holiday = TrafficModel.isHoliday(now);
+    $("#day-badge").textContent = holiday ? "节假日/周末" : "工作日";
+  };
+  tick();
+  setInterval(tick, 15000);
+}
+
+/* ── 在线抓取：Open-Meteo 实时天气（重庆渝中坐标，免 API Key） ── */
+async function fetchLiveWeather() {
+  const el = $("#weather-line");
+  try {
+    const url = "https://api.open-meteo.com/v1/forecast" +
+      "?latitude=29.563&longitude=106.5526" +
+      "&current=temperature_2m,weather_code,wind_speed_10m" +
+      "&timezone=Asia%2FShanghai";
+    const r = await fetch(url);
+    const d = await r.json();
+    const cur = d.current;
+    const code = cur.weather_code;
+    const map = wmoToWeather(code);
+    state.liveWeather = { temp: cur.temperature_2m, code, map, wind: cur.wind_speed_10m };
+
+    el.textContent =
+      `实况 ${cur.temperature_2m}°C · ${wmoDesc(code)} · 风 ${cur.wind_speed_10m} km/h`;
+    // 自动同步到推演天气
+    setWeather(map, true);
+  } catch (e) {
+    el.textContent = "实况获取失败（离线？），已使用模型默认天气";
+  }
+}
+
+function wmoToWeather(code) {
+  if (code === 0) return "sunny";
+  if (code <= 3) return "cloudy";
+  if (code === 45 || code === 48) return "fog";
+  return "rain"; // 51+ 降水类
+}
+function wmoDesc(code) {
+  const m = {
+    0: "晴", 1: "基本晴", 2: "多云", 3: "阴", 45: "雾", 48: "雾凇",
+    51: "毛毛雨", 53: "毛毛雨", 55: "毛毛雨", 61: "小雨", 63: "中雨", 65: "大雨",
+    71: "小雪", 73: "中雪", 75: "大雪", 80: "阵雨", 81: "阵雨", 82: "强阵雨",
+    95: "雷阵雨", 96: "雷阵雨伴冰雹", 99: "强雷暴",
+  };
+  return m[code] || "未知";
+}
+
+/* ── 地图：节点 ── */
+function renderNodes() {
+  const layer = $("#node-layer");
+  layer.innerHTML = "";
+  state.attractions.forEach((a) => {
+    const g = document.createElementNS(NS, "g");
+    g.classList.add("node-group");
+    g.dataset.id = a.id;
+
+    const dot = document.createElementNS(NS, "circle");
+    dot.classList.add("node-dot");
+    dot.setAttribute("cx", a.x);
+    dot.setAttribute("cy", a.y);
+    dot.setAttribute("r", 9);
+
+    const label = document.createElementNS(NS, "text");
+    label.classList.add("node-label");
+    label.setAttribute("x", a.x + 14);
+    label.setAttribute("y", a.y + 4);
+    label.textContent = a.name.split("·")[0];
+
+    g.appendChild(dot);
+    g.appendChild(label);
+    g.addEventListener("click", () => togglePoi(a.id));
+    layer.appendChild(g);
+  });
+}
+
+/* ── 地图：路段热力 ── */
+function renderEdges(corridors) {
+  const layer = $("#edge-layer");
+  layer.innerHTML = "";
+  const byId = Object.fromEntries(corridors.map((c) => [c.id, c]));
+
+  state.edges.forEach((e) => {
+    const a1 = state.attractions.find((x) => x.id === e.from);
+    const a2 = state.attractions.find((x) => x.id === e.to);
+    const c = byId[e.id];
+
+    const path = document.createElementNS(NS, "line");
+    path.classList.add("edge");
+    path.setAttribute("x1", a1.x); path.setAttribute("y1", a1.y);
+    path.setAttribute("x2", a2.x); path.setAttribute("y2", a2.y);
+    path.setAttribute("stroke", levelColor(c ? c.level : "畅通"));
+
+    const title = document.createElementNS(NS, "title");
+    title.textContent = `${e.name} · ${e.km}km · ${c ? c.level : ""} 约${c ? c.minutes : "?"}分钟`;
+    path.appendChild(title);
+    layer.appendChild(path);
+  });
+}
+
+function levelColor(level) {
+  return { "畅通": "#2e9e6b", "缓行": "#e8a13c", "拥堵": "#e2593b", "严重拥堵": "#b32d2d" }[level] || "#2e9e6b";
+}
+function levelClass(level) {
+  return { "畅通": "lv1", "缓行": "lv2", "拥堵": "lv3", "严重拥堵": "lv4" }[level] || "lv1";
+}
+
+/* ── 推演刷新 ── */
+function refreshTraffic() {
+  const dt = hourDate(state.hour);
+  const corridors = TrafficModel.corridorReport(state.edges, dt, state.weather);
+  renderEdges(corridors);
+}
+
+function hourDate(hour) {
+  const d = new Date();
+  d.setHours(hour, 0, 0, 0);
+  return d;
+}
+
+/* ── 天气切换 ── */
+function setWeather(w, fromLive) {
+  state.weather = w;
+  document.querySelectorAll(".weather-btn").forEach((b) => {
+    if (b.dataset.weather) b.classList.toggle("active", b.dataset.weather === w);
+  });
+  refreshTraffic();
+  if (fromLive) {
+    const el = $("#weather-line");
+    if (state.liveWeather) {
+      el.textContent += " · 已同步到推演";
+    }
+  }
+}
+
+/* ── 景点选择 ── */
+function togglePoi(id) {
+  const i = state.selected.indexOf(id);
+  if (i >= 0) state.selected.splice(i, 1);
+  else state.selected.push(id);
+  renderChips();
+  document.querySelectorAll(".node-group").forEach((g) => {
+    g.classList.toggle("selected", state.selected.includes(g.dataset.id));
+  });
+}
+
+function renderChips() {
+  const wrap = $("#poi-chips");
+  wrap.innerHTML = "";
+  state.attractions.forEach((a) => {
+    const b = document.createElement("button");
+    b.className = "poi-chip" + (state.selected.includes(a.id) ? " on" : "");
+    b.textContent = a.name.split("·")[0];
+    b.addEventListener("click", () => togglePoi(a.id));
+    wrap.appendChild(b);
+  });
+}
+
+function fillStartSelect() {
+  const sel = $("#start-select");
+  sel.innerHTML = "";
+  state.attractions.forEach((a) => {
+    const o = document.createElement("option");
+    o.value = a.id;
+    o.textContent = a.name;
+    if (a.id === state.start) o.selected = true;
+    sel.appendChild(o);
+  });
+}
+
+/* ── 生成行程（浏览器内计算） ── */
+function planTrip() {
+  const start = $("#start-select").value;
+  const start_time = $("#depart-time").value || "09:00";
+  const box = $("#plan-result");
+
+  if (!state.selected.length) {
+    box.innerHTML = `<div class="empty-state">请先在地图上点击至少一个景点 ⛰️</div>`;
+    return;
+  }
+
+  const [hh, mm] = start_time.split(":").map(Number);
+  const startDt = new Date();
+  startDt.setHours(hh, mm, 0, 0);
+
+  const planner = new RoutePlanner.Planner(state.attractions, state.edges);
+  const plan = planner.planTrip(start, state.selected.slice(), startDt, state.weather);
+  renderPlan(plan);
+}
+
+function renderPlan(plan) {
+  let html = `
+    <div class="trip-head">
+      <div>出发 <b>${plan.start_name}</b> · ${plan.depart}</div>
+      <div>车上合计 <b>${plan.total_ride_minutes}</b> 分钟</div>
+    </div>`;
+
+  plan.segments.forEach((s, i) => {
+    const lastLeg = s.legs[s.legs.length - 1];
+    html += `
+      <div class="stop-item">
+        <div class="stop-seq">${i + 1}</div>
+        <div>
+          <div class="stop-name">${s.to_name}</div>
+          <div class="stop-time">⏱ ${s.arrive} 到 → ${s.leave} 离开（游览 ${s.stay_min} 分钟）</div>
+        </div>
+      </div>`;
+    if (lastLeg) {
+      html += `
+        <div class="ride-note">
+          🚗 ${lastLeg.mode} · ${lastLeg.km}km · 约 ${lastLeg.minutes} 分钟<br>
+          路段「${lastLeg.road}」当前 <span class="jam ${levelClass(congestionLevel(lastLeg.congestion))}">${congestionLevel(lastLeg.congestion)}</span>
+        </div>`;
+    }
+  });
+
+  if (plan.advice && plan.advice.length) {
+    html += `<div class="advice-box"><b>错峰建议</b><br>${plan.advice.join("<br>")}</div>`;
+  }
+  $("#plan-result").innerHTML = html;
+}
+
+function congestionLevel(ratio) {
+  return ratio < 1.45 ? "畅通" : ratio < 2.0 ? "缓行" : ratio < 2.6 ? "拥堵" : "严重拥堵";
+}
+
+/* ── AI 问答（知识库检索 + 实时路况注入） ── */
+function ask(question) {
+  const log = $("#chat-log");
+  const u = document.createElement("div");
+  u.className = "msg user";
+  u.textContent = question;
+  log.appendChild(u);
+
+  const b = document.createElement("div");
+  b.className = "msg bot";
+  b.innerHTML = "思考中…";
+  log.appendChild(b);
+  log.scrollTop = log.scrollHeight;
+
+  // 模拟推理延迟，体验更像 AI
+  setTimeout(() => {
+    const resp = Knowledge.answer(question, state.knowledge);
+
+    // 注入实时路况摘要（模型推演）
+    const dt = new Date();
+    const report = TrafficModel.corridorReport(state.edges, dt, state.weather);
+    const busy = report.slice().sort((x, y) => y.ratio - x.ratio).slice(0, 2);
+    const ctx = `【实时推演】最堵路段：${busy.map((c) => `${c.name}（${c.level}）`).join("、")}`;
+
+    const live = state.liveWeather ? ` | 实况天气 ${state.liveWeather.temp}°C` : "";
+    b.innerHTML = `${resp.answer}<span class="src-tag">〔知识库检索 · ${ctx}${live}〕</span>`;
+    log.scrollTop = log.scrollHeight;
+  }, 420);
+}
+
+/* ── 事件绑定 ── */
+function bindEvents() {
+  $("#hour-slider").addEventListener("input", (e) => {
+    state.hour = +e.target.value;
+    refreshTraffic();
+  });
+  document.querySelectorAll(".weather-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (btn.id === "use-live-weather") {
+        fetchLiveWeather();
+        return;
+      }
+      setWeather(btn.dataset.weather, false);
+    });
+  });
+  $("#plan-btn").addEventListener("click", planTrip);
+  $("#chat-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const v = $("#chat-input").value.trim();
+    if (!v) return;
+    $("#chat-input").value = "";
+    ask(v);
+  });
+  document.querySelectorAll(".chip-q").forEach((c) =>
+    c.addEventListener("click", () => ask(c.textContent.trim()))
+  );
+  $("#start-select").addEventListener("change", (e) => (state.start = e.target.value));
+}
+
+init();
+
+</script>
+</body>
+</html>
